@@ -1,3 +1,14 @@
+"""
+Nearfield Beam Simulator - Main Application
+Version: 1.00
+Author: Michael C.M Varney
+Email: ****
+
+Main application script that provides the web interface and user controls for the
+Nearfield Beam Simulator. Built with Streamlit, this script handles all user interactions,
+parameter management, and visualization of the beam profiles.
+"""
+
 import streamlit as st
 import io
 import numpy as np
@@ -7,14 +18,14 @@ try:
     import matplotlib.pyplot as plt
     import matplotlib.cm as cm
 except ImportError:
-    raise ImportError("The 'matplotlib' module is required. Please install it using 'pip install matplotlib'.")
+    raise ImportError("Please install 'matplotlib' using 'pip install matplotlib'.")
 from beam_simulation import BeamSimulator
 from image_helpers import save_image
 
-# Filepath for the JSON file
+# Filepath for storing beam parameters
 PARAMS_FILE = "beam_params.json"
 
-# Default parameters
+# Default beam parameters
 default_params = {
     'width': 512,
     'height': 512,
@@ -40,8 +51,15 @@ default_params = {
     'file_format': 'JPEG'
 }
 
-# Load parameters from JSON file
 def load_params(filepath):
+    """Load beam parameters from a JSON file.
+
+    Parameters:
+    - filepath (str): Path to the JSON file.
+
+    Returns:
+    - params (dict): Loaded parameters dictionary.
+    """
     if os.path.exists(filepath):
         with open(filepath, 'r') as f:
             params = json.load(f)
@@ -53,18 +71,27 @@ def load_params(filepath):
     else:
         return default_params
 
-# Save parameters to JSON file
 def save_params(filepath, params):
+    """Save beam parameters to a JSON file.
+
+    Parameters:
+    - filepath (str): Path to save the JSON file.
+    - params (dict): Parameters dictionary to save.
+
+    Returns:
+    - None
+    """
     with open(filepath, 'w') as f:
         json.dump(params, f)
 
-# Load parameters
+# Load parameters at startup
 params = load_params(PARAMS_FILE)
 
-# Sidebar controls
+# Sidebar controls for adjusting parameters
 st.sidebar.title("Beam Parameters")
 
 with st.sidebar.expander("Image Settings"):
+    # Image dimensions and color palette selection
     # Image Dimensions
     params['width'] = st.number_input("Image Sensor Width in Pixels", value=params['width'], min_value=1)
     params['height'] = st.number_input("Image Sensor Height in Pixels", value=params['height'], min_value=1)
@@ -75,16 +102,19 @@ with st.sidebar.expander("Image Settings"):
     params['color_palette'] = st.selectbox("Color Palette", options=color_palettes, index=color_palettes.index(params.get('color_palette', 'gray')))
 
 with st.sidebar.expander("Elliptical Parameters"):
+    # Parameters for the elliptical shape and rolloff
     params['radius_mm'] = st.slider("Ellipse Radius (mm)", 1.0, min(params['width'], params['height']) / params['pixels_per_mm'], params['radius'] / params['pixels_per_mm'])
     params['ellipticity'] = st.slider("Ellipticity", 0.1, 2.0, params['ellipticity'])
     params['ellipse_angle'] = st.slider("Ellipse Rotation (Degrees)", 0, 360, params['ellipse_angle'])
     params['rolloff_width_mm'] = st.slider("Edge Rolloff Width (mm)", 0.1, 10.0, 1 / (params['rolloff_width'] / params['pixels_per_mm']))
 
 with st.sidebar.expander("Asymmetry Parameters"):
+    # Parameters for beam asymmetry
     params['asymmetry_x'] = st.slider("Asymmetry X", 0.0, 1.0, params['asymmetry_x'])
     params['asymmetry_y'] = st.slider("Asymmetry Y", 0.0, 1.0, params['asymmetry_y'])
 
 with st.sidebar.expander("Perlin Noise Parameters"):
+    # Parameters for Perlin noise
     params['enable_perlin_noise'] = st.checkbox("Enable Perlin Noise", value=params['enable_perlin_noise'])
     params['perlin_scale'] = st.slider("Perlin Noise Scale", 0.1, 20.0, params['perlin_scale'])
     params['perlin_octaves'] = st.slider("Perlin Noise Octaves", 1, 10, params['perlin_octaves'])
@@ -94,15 +124,17 @@ with st.sidebar.expander("Perlin Noise Parameters"):
     params['unmodulated_percentage'] = st.slider("Unmodulated Beam Percentage", 0.0, 1.0, params['unmodulated_percentage'])
 
 with st.sidebar.expander("Noise and Brightness"):
+    # Parameters for Gaussian noise and brightness scaling
     params['gaussian_noise_std'] = st.slider("Gaussian Noise Std Dev", 0.0, 0.03, params['gaussian_noise_std'], step=0.0001, format="%.4f")
     params['brightness_scale'] = st.slider("Brightness Scale", 0.1, 6.0, params['brightness_scale'])
 
 # Save parameters whenever they are updated
 save_params(PARAMS_FILE, params)
 
-# Beam simulation
+# Initialize BeamSimulator and generate the beam image
 simulator = BeamSimulator(params['width'], params['height'])
 beam_image = simulator.generate_beam(
+    # Pass all parameters to the beam generation function
     perlin_scale=params['perlin_scale'],
     perlin_octaves=params['perlin_octaves'],
     perlin_persistence=params['perlin_persistence'],
@@ -120,6 +152,7 @@ beam_image = simulator.generate_beam(
     unmodulated_percentage=params['unmodulated_percentage']
 )
 
+# Display the beam image and cross-section plots
 # Display image with color bar and horizontal line
 st.markdown("<h1 style='text-align: center;'>Beam Near Field</h1>", unsafe_allow_html=True)
 fig, ax = plt.subplots()
@@ -137,8 +170,9 @@ cross_section_ax.set_ylabel("Intensity")
 st.pyplot(cross_section_fig)
 
 with st.sidebar.expander("Save Options"):
+    # Options for saving the generated image
     params['tiff_bit_depth'] = st.selectbox("TIFF Bit Depth", options=[8, 16, 32], index=[8, 16, 32].index(params.get('tiff_bit_depth', 16)))
-    params['file_format'] = st.selectbox("File Format", ["JPEG", "TIFF"], index=["JPEG", "TIFF"].index(params.get('file_format', "JPEG")))
+    params['file_format'] = st.selectbox("File Format", ["JPEG", "TIFF"], index=["JPEG", "TIFF"].index(params.get('file_format', "TIFF")))
     buffer = io.BytesIO()
     save_image(beam_image, buffer, format=params['file_format'], bit_depth=params['tiff_bit_depth'])
     buffer.seek(0)

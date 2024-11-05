@@ -3,4 +3,5 @@ scipy
 noise
 Pillow
 streamlit
-scikit-image
+matplotlib
+tifffile
