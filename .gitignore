@@ -1,2 +1,5 @@
 /.conda
 /__pycache__
+
+.gitignore
+Nearfield_Simulator.code-workspace
