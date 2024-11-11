@@ -1,4 +1,4 @@
-/.conda
+/.venv
 /__pycache__
 
 .gitignore
