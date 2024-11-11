@@ -5,3 +5,4 @@ Pillow
 streamlit
 matplotlib
 tifffile
+tqdm==4.64.0

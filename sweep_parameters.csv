@@ -1,0 +1,16 @@
+parameter,lower_bound,main_value,upper_bound
+perlin_scale,0.0,10.0,20.0
+perlin_octaves,1,5.0,10.0
+perlin_persistence,0.0,0.5,1.0
+perlin_lacunarity,1,2.0,4.0
+asymmetry_x,0.0,0.5,1.0
+asymmetry_y,0.0,0.5,1.0
+ellipticity,0.7,0.9,1.0
+ellipse_angle,0.0,45.0,90.0
+rolloff_width,0.0,1.0,3.0
+gaussian_noise_std,0.002,0.003,0.004
+brightness_scale,5.0,5.0,5.0
+unmodulated_percentage,0.0,0.5,1.0
+radius_mm,40.0,45.0,50.0
+rolloff_width_mm,0.0,1.5,3.0
+perlin_amplitude,0.0,5.0,10.0
